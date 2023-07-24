@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include <unistd.h>
@@ -153,25 +154,38 @@ int deleteList(Node **head)
     }
 }
 
-int insertNode(Node **head, const char *name, const char *surname, const char *email, const char *number)
+Node *createNode(const char *name, const char *surname, const char *email, const char *number)
 {
     Node *newNode = (Node *)malloc(sizeof(Node));
+    if(newNode == NULL)
+    {
+        return NULL;
+    }
+    initializeNode(newNode, name, surname, email, number);
+    newNode->next = NULL;
+    return newNode;
+}
+
+int insertNode(Node **head, int *indexp)
+{
+    Node *newNode = NULL;
+    char name[50], surname[50], email[50], number[50];
+    getContactInfo(name, surname, email, number);
+    newNode = createNode(name, surname, email, number);
 
     if (newNode == NULL)
     {
         return 1;
     }
 
-    initializeNode(newNode, name, surname, email, number);
-
-    newNode->next = NULL;
-
-    if (*head == NULL)
+    if(indexp == NULL)
     {
-        *head = newNode;
-    }
-    else
-    {
+        if (*head == NULL)
+        {
+            *head = newNode;
+            return 0;
+        }
+        
         Node *tail = *head;
         while (tail->next != NULL)
         {
@@ -180,37 +194,32 @@ int insertNode(Node **head, const char *name, const char *surname, const char *e
         tail->next = newNode;
     }
 
-    return 0;
-}
-
-int insertNodeAt(Node **head, const char *name, const char *surname, const char *email, const char *number, int index)
-{
-    if (index == 1 || *head == NULL)
+    else
     {
-        insertNode(head, name, surname, email, number);
-        return 0;
+        int index = *indexp;    
+        if(index <= 0 || index > linkedListLength(*head))
+        {
+            return 1;
+        }
+
+        if (index == 1 && *head == NULL)
+        {
+            *head = newNode;
+            return 0;
+        }
+
+        Node *current = *head;
+        int currentPosition = 1;
+
+        while (currentPosition < index - 1)
+        {
+            current = current->next;
+            currentPosition++;
+        }
+
+        newNode->next = current->next;
+        current->next = newNode;
     }
-
-    if (index <= 0 || index > linkedListLength(*head))
-    {
-        return 1;
-    }
-
-    Node *newNode = (Node *)malloc(sizeof(Node));
-    initializeNode(newNode, name, surname, email, number);
-
-    Node *current = *head;
-    int currentPosition = 1;
-
-    while (currentPosition < index - 1)
-    {
-        current = current->next;
-        currentPosition++;
-    }
-
-    newNode->next = current->next;
-    current->next = newNode;
-
     return 0;
 }
 
@@ -313,4 +322,16 @@ int linkedListLength(const Node *head)
     }
 
     return length;
+}
+
+void getContactInfo(char name[50], char surname[50], char email[50], char number[50])
+{
+    printf("Name: ");
+    scanf("%49s", name);
+    printf("Surname: ");
+    scanf("%49s", surname);
+    printf("Email: ");
+    scanf("%49s", email);
+    printf("Number: ");
+    scanf("%49s", number);
 }
